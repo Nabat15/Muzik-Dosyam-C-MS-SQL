@@ -1,0 +1,2237 @@
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+using System.Data.SqlClient;
+
+//admin
+namespace pro3
+{
+    public partial class admin : Form
+    {
+
+        SqlConnection baglanti = new SqlConnection("Data Source=NABAT\\SQLEXPRESS;Initial Catalog=muzikDosyam;Integrated Security=True");
+        SqlCommand komut = new SqlCommand();
+        SqlDataAdapter adaptor;
+        SqlCommand cmd;
+        String kayit;
+        public admin()
+        {
+            InitializeComponent();
+        }
+
+        void SarkiGetir()
+        {
+            baglanti.Open();
+            adaptor = new SqlDataAdapter("SELECT * FROM sarki", baglanti);
+            DataTable sarki_tablo = new DataTable();
+            adaptor.Fill(sarki_tablo);
+            dataGridView1.DataSource = sarki_tablo;
+            baglanti.Close();
+        }
+        void albumGetir()
+        {
+            baglanti.Open();
+            adaptor = new SqlDataAdapter("SELECT * FROM album", baglanti);
+            DataTable album_tablo = new DataTable();
+            adaptor.Fill(album_tablo);
+            dataGridView4.DataSource = album_tablo;
+            adaptor = new SqlDataAdapter("SELECT * FROM album_sanatci", baglanti);
+            album_tablo = new DataTable();
+            adaptor.Fill(album_tablo);
+            dataGridView5.DataSource = album_tablo;
+            baglanti.Close();
+        }
+        void sanatciGetir()
+        {
+            baglanti.Open();
+            adaptor = new SqlDataAdapter("SELECT * FROM  sanatci", baglanti);
+            DataTable sanatci_tablo = new DataTable();
+            adaptor.Fill(sanatci_tablo);
+            dataGridView2.DataSource = sanatci_tablo;
+            adaptor = new SqlDataAdapter("SELECT * FROM sarki_sanatci", baglanti);
+            sanatci_tablo = new DataTable();
+            adaptor.Fill(sanatci_tablo);
+            dataGridView3.DataSource = sanatci_tablo;
+
+            baglanti.Close();
+        }
+        private void admin_Load(object sender, EventArgs e)
+        {
+            SarkiGetir();
+            albumGetir();
+            sanatciGetir();
+        }
+
+
+        private void label33_Click(object sender, EventArgs e)
+        {
+
+        }
+
+
+
+        private void textBox5_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label34_Click(object sender, EventArgs e)
+        {
+
+        }
+
+
+
+        private void textBox3_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                
+                if (baglanti.State == ConnectionState.Closed)
+                {
+                    baglanti.Open();
+
+                    kayit = "INSERT INTO sarki(albumId,sarkiAdi,tarih,turId,sure,dinlenmeSayisi) " +
+                       "VALUES(@albumId,@sarkiAdi,@tarih,@turId,@sure,@dinlenmeSayisi)";
+                    cmd = new SqlCommand(kayit, baglanti);
+                    cmd.Parameters.AddWithValue("@albumId", textBox1.Text);
+                    cmd.Parameters.AddWithValue("@sarkiAdi", textBox2.Text);
+                    cmd.Parameters.AddWithValue("@tarih", dateTimePicker2.Value);
+                    cmd.Parameters.AddWithValue("@turId", textBox3.Text);
+                    cmd.Parameters.AddWithValue("@sure", textBox4.Text);
+                     Random rastgele = new Random();
+                    
+                    int sayi = rastgele.Next(Int32.Parse(textBox5.Text));
+                    cmd.Parameters.AddWithValue("@dinlenmeSayisi", sayi);
+
+
+                    cmd.ExecuteNonQuery();
+                    cmd.Dispose();
+                    baglanti.Close();
+                    MessageBox.Show("ÞARKI EKLENDÝ", "KAYIT BAÞARILI");
+
+                }
+            }
+            catch (Exception hata)
+            {
+                MessageBox.Show("Bir hata var!" + hata.Message);
+            }
+            SarkiGetir();
+        }
+
+        private void button2_Click_1(object sender, EventArgs e)
+        {
+
+            foreach (DataGridViewRow drow in dataGridView1.SelectedRows)
+            {
+                baglanti.Open();
+                int id = Convert.ToInt32(drow.Cells[0].Value);
+                kayit = "DELETE FROM calmaListesi WHERE sarkiId= '" + id + "'";
+                cmd = new SqlCommand(kayit, baglanti);
+                
+                cmd.ExecuteNonQuery();
+                cmd.Dispose();
+                kayit = "DELETE FROM sarki_sanatci WHERE sarkiId= '" + id + "'";
+                cmd = new SqlCommand(kayit, baglanti);
+                
+                cmd.ExecuteNonQuery();
+                cmd.Dispose();
+                kayit = "DELETE FROM sarki WHERE Id= '" + id + "'";
+                cmd = new SqlCommand(kayit, baglanti);
+                cmd.ExecuteNonQuery();
+                cmd.Dispose();
+                baglanti.Close();
+            }
+            SarkiGetir();
+            sanatciGetir();
+        }
+
+        
+
+        private void button4_Click_1(object sender, EventArgs e)
+        {
+            try
+            {
+                foreach (DataGridViewRow drow in dataGridView1.SelectedRows)
+                {
+                    int id = Convert.ToInt32(drow.Cells[0].Value);
+                    baglanti.Open();
+                    if (textBox1.Text != "")
+                    {
+                        kayit = "UPDATE sarki SET albumId='" + textBox1.Text + "' WHERE Id= '" + id + "'";
+                        cmd = new SqlCommand(kayit, baglanti);
+                        cmd.ExecuteNonQuery();
+                        cmd.Dispose();
+                    }
+
+
+                    if (textBox2.Text != "")
+                    {
+                        kayit = "UPDATE sarki SET sarkiAdi='" + textBox2.Text + "' WHERE Id= '" + id + "'";
+                        cmd = new SqlCommand(kayit, baglanti);
+                        cmd.ExecuteNonQuery();
+                        cmd.Dispose();
+                    }
+                 
+                        kayit = "UPDATE sarki SET tarih=@tarih WHERE Id= '" + id + "'";
+                        cmd = new SqlCommand(kayit, baglanti);
+                        cmd.Parameters.AddWithValue("@tarih", dateTimePicker2.Value);
+                       cmd.ExecuteNonQuery();
+                        cmd.Dispose();
+                    
+                    if (textBox3.Text != "")
+                    {
+                        kayit = "UPDATE sarki SET turId='" + textBox3.Text + "' WHERE Id= '" + id + "'";
+                        cmd = new SqlCommand(kayit, baglanti);
+                        cmd.ExecuteNonQuery();
+                        cmd.Dispose();
+                    }
+                    if (textBox4.Text != "")
+                    {
+                        kayit = "UPDATE sarki SET sure='" + textBox4.Text + "' WHERE Id= '" + id + "'";
+                        cmd = new SqlCommand(kayit, baglanti);
+                        cmd.ExecuteNonQuery();
+                        cmd.Dispose();
+                    }
+                    if (textBox5.Text != "")
+                    {
+                        kayit = "UPDATE sarki SET dinlenmeSayisi='" + textBox5.Text + "' WHERE Id= '" + id + "'";
+                        cmd = new SqlCommand(kayit, baglanti);
+                        cmd.ExecuteNonQuery();
+                        cmd.Dispose();
+                    }
+
+                    baglanti.Close();
+                    MessageBox.Show("GÜNCELLENDÝ", "KAYIT BAÞARILI");
+                }
+            }
+            catch(Exception hata)
+            {
+                MessageBox.Show("Bir hata var!" + hata.Message);
+            }
+
+
+            SarkiGetir();
+        }
+
+        private void button6_Click_1(object sender, EventArgs e)
+        {
+
+            try
+            {
+                if (baglanti.State == ConnectionState.Closed)
+                {
+                    baglanti.Open();
+
+                    if (textBox6.Text != "" && textBox7.Text != "")
+                    {
+                        kayit = "INSERT INTO sanatci(sanatciAdi,ulke) " +
+                            "VALUES(@sanatciAdi,@ulke)";
+                        cmd = new SqlCommand(kayit, baglanti);
+                        cmd.Parameters.AddWithValue("@sanatciAdi", textBox6.Text);
+                        cmd.Parameters.AddWithValue("@ulke", textBox7.Text);
+                        cmd.ExecuteNonQuery();
+                        cmd.Dispose();
+                        MessageBox.Show("KAYIT BAÞARILI", "KAYIT BAÞARILI");
+                    }
+                    if (textBox8.Text != "" && textBox9.Text != "")
+                    {
+                        kayit = "INSERT INTO sarki_sanatci(sanatciId,sarkiId) " +
+                        "VALUES(@sanatciId,@sarkiId)";
+                        cmd = new SqlCommand(kayit, baglanti);
+                        cmd.Parameters.AddWithValue("@sanatciId", textBox8.Text);
+                        cmd.Parameters.AddWithValue("@sarkiId", textBox9.Text);
+                        cmd.ExecuteNonQuery();
+                        cmd.Dispose();
+                        MessageBox.Show("KAYIT BAÞARILI", "KAYIT BAÞARILI");
+                    }
+
+                    baglanti.Close();
+
+
+                }
+            }
+            catch (Exception hata)
+            {
+                MessageBox.Show("Bir hata var!" + hata.Message);
+            }
+            sanatciGetir();
+        }
+
+        private void button5_Click_1(object sender, EventArgs e)
+        {
+            foreach (DataGridViewRow drow in dataGridView2.SelectedRows)
+            {
+                int id = Convert.ToInt32(drow.Cells[0].Value);
+                baglanti.Open();
+                kayit = "DELETE FROM sarki_sanatci WHERE sanatciId= '" + id + "'";
+                cmd = new SqlCommand(kayit, baglanti);
+                cmd.ExecuteNonQuery();
+                cmd.Dispose();
+                kayit = "DELETE FROM album_sanatci WHERE sanatciId= '" + id + "'";
+                cmd = new SqlCommand(kayit, baglanti);
+                cmd.ExecuteNonQuery();
+                cmd.Dispose();
+                kayit = "DELETE FROM sanatci WHERE Id= '" + id + "'";
+                cmd = new SqlCommand(kayit, baglanti);
+                cmd.ExecuteNonQuery();
+                cmd.Dispose();
+                baglanti.Close();
+            }
+            foreach (DataGridViewRow drow in dataGridView3.SelectedRows)
+            {
+                int id = Convert.ToInt32(drow.Cells[0].Value);
+                baglanti.Open();
+                kayit = "DELETE FROM sarki_sanatci WHERE sanatciId= '" + id + "'";
+                cmd = new SqlCommand(kayit, baglanti);
+                cmd.ExecuteNonQuery();
+                cmd.Dispose();
+                baglanti.Close();
+            }
+            sanatciGetir();
+            albumGetir();
+        }
+
+
+        private void button3_Click_1(object sender, EventArgs e)
+        {
+            foreach (DataGridViewRow drow in dataGridView2.SelectedRows)
+            {
+                int id = Convert.ToInt32(drow.Cells[0].Value);
+                baglanti.Open();
+                if (textBox6.Text != "")
+                {
+                    kayit = "UPDATE sanatci SET sanatciAdi='" + textBox6.Text + "' WHERE Id= '" + id + "'";
+                    cmd = new SqlCommand(kayit, baglanti);
+                    cmd.ExecuteNonQuery();
+                    cmd.Dispose();
+                }
+                if (textBox7.Text != "")
+                {
+                    kayit = "UPDATE sanatci SET ulke ='" + textBox7.Text + "' WHERE Id='" + id + "'";
+                    cmd = new SqlCommand(kayit, baglanti);
+                    cmd.ExecuteNonQuery();
+                    cmd.Dispose();
+                }
+
+            }
+            try
+            {
+                foreach (DataGridViewRow drow1 in dataGridView3.SelectedRows)
+                {
+                    int id = Convert.ToInt32(drow1.Cells[0].Value);
+                    baglanti.Open();
+                    if (textBox8.Text != "")
+                    {
+                        kayit = "UPDATE sarki_sanatci SET sanatciId='" + textBox8.Text + "' WHERE sanatciId='" + id + "'";
+                        cmd = new SqlCommand(kayit, baglanti);
+                        cmd.ExecuteNonQuery();
+                        cmd.Dispose();
+                        
+                    }
+                    if (textBox9.Text != "")
+                    {
+                        kayit = "UPDATE sarki_sanatci SET sarkiId='" + textBox9.Text + "' WHERE sanatciId='" + id + "'";
+                        cmd = new SqlCommand(kayit, baglanti);
+                        cmd.ExecuteNonQuery();
+                        cmd.Dispose();
+
+                    }
+
+                }
+                MessageBox.Show("GÜNCELLENDÝ", "KAYIT BAÞARILI");
+                baglanti.Close();
+            }
+            catch (Exception hata)
+            {
+                MessageBox.Show(textBox8.Text + "nolu sanatci veya" + textBox9.Text + "nolu þarki bulunmamaktadýr! " + hata.Message);
+            }
+
+            sanatciGetir();
+        }
+
+        private void textBox10_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label40_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void button7_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                if (baglanti.State == ConnectionState.Closed)
+                {
+                    baglanti.Open();
+
+                    if (textBox10.Text != "" && dateTimePicker3.Value.ToString() != "")
+                    {
+                        kayit = "INSERT INTO  album(albumAdi,tarih) " +
+                            "VALUES(@albumAdi,@tarih)";
+                        cmd = new SqlCommand(kayit, baglanti);
+                        cmd.Parameters.AddWithValue("@albumAdi", textBox10.Text);
+                        cmd.Parameters.AddWithValue("@tarih", dateTimePicker3.Value);
+                        cmd.ExecuteNonQuery();
+                        cmd.Dispose();
+                        MessageBox.Show("KAYIT BAÞARILI", "KAYIT BAÞARILI");
+                    }
+                    if (textBox11.Text != "" || textBox12.Text != "")
+                    {
+                        kayit = "INSERT INTO album_sanatci(sanatciId,albumId) " +
+                        "VALUES(@sanatciId,@albumId)";
+                        cmd = new SqlCommand(kayit, baglanti);
+                        cmd.Parameters.AddWithValue("@sanatciId", textBox11.Text);
+                        cmd.Parameters.AddWithValue("@albumId", textBox12.Text);
+                        cmd.ExecuteNonQuery();
+                        cmd.Dispose();
+                        MessageBox.Show("KAYIT BAÞARILI", "KAYIT BAÞARILI");
+                    }
+
+                    baglanti.Close();
+
+
+                }
+            }
+            catch (Exception hata)
+            {
+                MessageBox.Show("Bir hata var!" + hata.Message);
+            }
+            albumGetir();
+
+        }
+
+        private void button8_Click_1(object sender, EventArgs e)
+        {
+            foreach (DataGridViewRow drow in dataGridView4.SelectedRows)
+            {
+                int id = Convert.ToInt32(drow.Cells[0].Value);
+                baglanti.Open();
+                kayit = "DELETE FROM sarki WHERE albumId= '" + id + "'";
+                cmd = new SqlCommand(kayit, baglanti);
+                cmd.ExecuteNonQuery();
+                cmd.Dispose();
+                kayit = "DELETE FROM album_sanatci WHERE albumId= '" + id + "'";
+                cmd = new SqlCommand(kayit, baglanti);
+                cmd.ExecuteNonQuery();
+                cmd.Dispose();
+                kayit = "DELETE FROM album WHERE Id= '" + id + "'";
+                cmd = new SqlCommand(kayit, baglanti);
+                cmd.ExecuteNonQuery();
+                cmd.Dispose();
+                baglanti.Close();
+            }
+            foreach (DataGridViewRow drow in dataGridView5.SelectedRows)
+            {
+                int id = Convert.ToInt32(drow.Cells[0].Value);
+                baglanti.Open();kayit = "DELETE FROM album_sanatci WHERE sanatciId= '" + id + "'";
+                cmd = new SqlCommand(kayit, baglanti);
+                cmd.ExecuteNonQuery();
+                cmd.Dispose();baglanti.Close();
+            }
+            sanatciGetir();
+            albumGetir();
+        }
+
+        private void button9_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                foreach (DataGridViewRow drow in dataGridView4.SelectedRows)
+                {
+                    int id = Convert.ToInt32(drow.Cells[0].Value);
+                    
+                    baglanti.Open();
+                    if (textBox10.Text != "")
+                    {
+                        kayit = "UPDATE album SET albumAdi='" + textBox10.Text + "' WHERE Id= '" + id + "'";
+                        cmd = new SqlCommand(kayit, baglanti);
+                        cmd.ExecuteNonQuery();
+                        cmd.Dispose();
+                    }
+                   
+                        kayit = "UPDATE album SET tarih =@tarih WHERE Id='" + id + "'";
+                        cmd = new SqlCommand(kayit, baglanti);
+                    cmd.Parameters.AddWithValue("@tarih", dateTimePicker3.Value);
+                    cmd.ExecuteNonQuery();
+                        cmd.Dispose();
+                        
+                    
+
+                }
+
+                    foreach (DataGridViewRow drow1 in dataGridView5.SelectedRows)
+                    {
+                        int id = Convert.ToInt32(drow1.Cells[0].Value);
+                        baglanti.Open();
+                        if (textBox11.Text != "")
+                        {
+                            kayit = "UPDATE album_sanatci SET sanatciId='" + textBox11.Text + "' WHERE sanatciId='" + id + "'";
+                            cmd = new SqlCommand(kayit, baglanti);
+                            cmd.ExecuteNonQuery();
+                            cmd.Dispose();
+                           
+                        }
+                        if (textBox12.Text != "")
+                        {
+                            kayit = "UPDATE album_sanatci SET  albumId='" + textBox12.Text + "' WHERE sanatciId='" + id + "'";
+                            cmd = new SqlCommand(kayit, baglanti);
+                            cmd.ExecuteNonQuery();
+                            cmd.Dispose();
+
+                        }
+
+                    }
+                    MessageBox.Show("GÜNCELLENDÝ", "KAYIT BAÞARILI");
+            }
+            catch (Exception hata)
+            {
+                    MessageBox.Show(textBox11.Text +": nolu sanatci veya" + textBox12.Text + ": nolu album bulunmamaktadýr! " + hata.Message);
+            }
+
+                
+                baglanti.Close();
+               albumGetir();
+            
+        }
+
+        private void button10_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                ayarlar ayar = new ayarlar();
+                ayar.ShowDialog();
+                this.Close();
+            }
+            catch(Exception hata)
+            {
+                MessageBox.Show("Bir hata var!" + hata.Message);
+            }
+          
+        }
+
+        private void textBox5_TextChanged_1(object sender, EventArgs e)
+        {
+
+        }
+    }
+
+}
+
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+using System.Data.SqlClient;
+
+//adminAyar
+namespace pro3
+{
+    public partial class adminAyar : Form
+    {
+        SqlConnection baglanti = new SqlConnection("Data Source=NABAT\\SQLEXPRESS;Initial Catalog=muzikDosyam;Integrated Security=True");
+        SqlCommand komut = new SqlCommand();
+        SqlDataAdapter adaptor;
+        SqlCommand cmd;
+        String kayit;
+        String kontrol;
+        public adminAyar()
+        {
+            InitializeComponent();
+            adminGetir();
+        }
+        void adminGetir()
+        {
+            baglanti.Open();
+            DataTable sarki_tablo;
+            adaptor = new SqlDataAdapter("SELECT * FROM admin", baglanti);
+            sarki_tablo = new DataTable();
+            adaptor.Fill(sarki_tablo);
+            dataGridView1.DataSource = sarki_tablo;
+            baglanti.Close();
+        }
+        private void k_ekle_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                if (baglanti.State == ConnectionState.Closed)
+                {
+                    baglanti.Open();
+                    if (kullaniciAdiText.Text != "" && emailText.Text != "" && sifreText.Text != "" && ulkeText.Text != "")
+                    {
+                        String kayit = "INSERT INTO admin(adminAdi,email,sifre,ulke) " +
+                       "VALUES(@adminAdi,@email,@sifre,@ulke)";
+                        SqlCommand cmd = new SqlCommand(kayit, baglanti);
+                        cmd.Parameters.AddWithValue("@adminAdi", kullaniciAdiText.Text);
+                        cmd.Parameters.AddWithValue("@email", emailText.Text);
+                        cmd.Parameters.AddWithValue("@sifre", sifreText.Text);
+                        cmd.Parameters.AddWithValue("@ulke", ulkeText.Text);
+
+                        cmd.ExecuteNonQuery();
+                        cmd.Dispose();
+                        MessageBox.Show("Admin Eklendi", "KAYIT BAÞARILI");
+                    }
+                    baglanti.Close();
+                }
+            }
+            catch (Exception hata)
+            {
+            MessageBox.Show("Bir hata var!" + hata.Message);
+            }
+            adminGetir();
+        }
+
+        private void k_sil_Click(object sender, EventArgs e)
+        {
+            foreach (DataGridViewRow drow in dataGridView1.SelectedRows)
+            {
+                baglanti.Open();
+                int id = Convert.ToInt32(drow.Cells[0].Value);
+                kayit = "DELETE FROM admin WHERE Id= '" + id + "'";
+                cmd = new SqlCommand(kayit, baglanti);
+                cmd.ExecuteNonQuery();
+                cmd.Dispose();
+                baglanti.Close();
+            }
+
+            adminGetir();
+        }
+
+        private void k_güncelle_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                foreach (DataGridViewRow drow in dataGridView1.SelectedRows)
+                {
+                    int id = Convert.ToInt32(drow.Cells[0].Value);
+                    baglanti.Open();
+                    if (kullaniciAdiText.Text != "")
+                    {
+                        kayit = "UPDATE admin SET adminAdi='" + kullaniciAdiText.Text + "' WHERE Id= '" + id + "'";
+                        cmd = new SqlCommand(kayit, baglanti);
+                        cmd.ExecuteNonQuery();
+                        cmd.Dispose();
+                    }
+
+
+                    if (emailText.Text != "")
+                    {
+                        kayit = "UPDATE admin SET email='" + emailText.Text + "' WHERE Id= '" + id + "'";
+                        cmd = new SqlCommand(kayit, baglanti);
+                        cmd.ExecuteNonQuery();
+                        cmd.Dispose();
+                    }
+
+                    if (sifreText.Text != "")
+                    {
+                        kayit = "UPDATE admin SET sifre='" + sifreText.Text + "' WHERE Id= '" + id + "'";
+                        cmd = new SqlCommand(kayit, baglanti);
+                        cmd.ExecuteNonQuery();
+                        cmd.Dispose();
+                    }
+                    
+                    if (ulkeText.Text != "")
+                    {
+                        kayit = "UPDATE admin SET ulke ='" + ulkeText.Text + "' WHERE Id= '" + id + "'";
+                        cmd = new SqlCommand(kayit, baglanti);
+                        cmd.ExecuteNonQuery();
+                        cmd.Dispose();
+                    }
+
+
+                }
+                baglanti.Close();
+                MessageBox.Show("GÜNCELLENDÝ", "KAYIT BAÞARILI");
+            }
+            catch (Exception hata)
+            {
+                MessageBox.Show("Bir hata var!" + hata.Message);
+            }
+            adminGetir();
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            this.Close();
+        }
+
+        private void adminAyar_Load(object sender, EventArgs e)
+        {
+
+        }
+    }
+}
+
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+using System.Data.SqlClient;
+
+//ayarlar
+namespace pro3
+{
+    public partial class ayarlar : Form
+    {
+        SqlConnection baglanti = new SqlConnection("Data Source=NABAT\\SQLEXPRESS;Initial Catalog=muzikDosyam;Integrated Security=True");
+        SqlCommand komut = new SqlCommand();
+        SqlDataAdapter adaptor;
+        SqlCommand cmd;
+        String kayit;
+        String kontrol;
+        public ayarlar()
+        {
+            InitializeComponent();
+            kullaniciGetir();
+            turGetir();
+            calmaListesi();
+        }
+        void kullaniciGetir()
+        {
+            baglanti.Open();
+            DataTable sarki_tablo;
+            adaptor = new SqlDataAdapter("SELECT * FROM kullanici", baglanti);
+            sarki_tablo = new DataTable();
+            adaptor.Fill(sarki_tablo);
+            dataGridView1.DataSource = sarki_tablo;
+            adaptor = new SqlDataAdapter("SELECT * FROM takipci", baglanti);
+            sarki_tablo = new DataTable();
+            adaptor.Fill(sarki_tablo);
+            dataGridView2.DataSource = sarki_tablo;
+            baglanti.Close();
+        }
+        void turGetir()
+        {
+            baglanti.Open();
+            DataTable sarki_tablo;
+            adaptor = new SqlDataAdapter("SELECT * FROM tur", baglanti);
+            sarki_tablo = new DataTable();
+            adaptor.Fill(sarki_tablo);
+            dataGridView3.DataSource = sarki_tablo;
+            baglanti.Close();
+        }
+
+        void calmaListesi()
+        {
+            baglanti.Open();
+            DataTable sarki_tablo;
+            adaptor = new SqlDataAdapter("SELECT * FROM calmaListesi", baglanti);
+            sarki_tablo = new DataTable();
+            adaptor.Fill(sarki_tablo);
+            dataGridView4.DataSource = sarki_tablo;
+            baglanti.Close();
+        }
+        private void k_ekle_Click(object sender, EventArgs e)
+        {
+          
+            try
+            {
+                if (baglanti.State == ConnectionState.Closed)
+                {
+                    baglanti.Open();
+                    if (kullaniciAdiText.Text != "" && emailText.Text != "" && sifreText.Text != "" && abonelikTuruText.Text != "" && ulkeText.Text != "" )
+                    {
+                        String kayit = "INSERT INTO kullanici(kullaniciAdi,email,sifre,abonelikTuru,ulke,odendiBilgisi) " +
+                       "VALUES(@kullaniciAdi,@email,@sifre,@abonelikTuru,@ulke,@odendiBilgisi)";
+                        SqlCommand cmd = new SqlCommand(kayit, baglanti);
+                        cmd.Parameters.AddWithValue("@kullaniciAdi", kullaniciAdiText.Text);
+                        cmd.Parameters.AddWithValue("@email", emailText.Text);
+                        cmd.Parameters.AddWithValue("@sifre", sifreText.Text);
+                        cmd.Parameters.AddWithValue("@abonelikTuru", abonelikTuruText.Text);
+                        cmd.Parameters.AddWithValue("@ulke", ulkeText.Text);
+
+                        if (String.Equals(abonelikTuruText.Text, "Normal") == true)
+                        {
+
+
+                            cmd.Parameters.AddWithValue("@odendiBilgisi", "odenmedi");
+                        }
+                        else if (String.Equals(abonelikTuruText.Text, "Premium") == true)
+                        {
+                            cmd.Parameters.AddWithValue("@odendiBilgisi", "odendi");
+                        }
+                        cmd.ExecuteNonQuery();
+                        cmd.Dispose();
+                        MessageBox.Show("Kullanýcý Eklendi", "KAYIT BAÞARILI");
+                    }
+
+
+
+                    kayit = "SELECT odendiBilgisi FROM kullanici WHERE Id='" + takipciId.Text + "'";
+                        cmd = new SqlCommand(kayit, baglanti);
+                        SqlDataReader oku1 = cmd.ExecuteReader();
+
+                        while (oku1.Read())
+                        {
+                           kontrol= oku1["odendiBilgisi"].ToString();
+                       
+                        }
+                        oku1.Close();
+                        if (takipId.Text != "" && takipciId.Text != "" && kontrol == "odendi")
+                        {
+                            kayit = "INSERT INTO takipci(takipId,takipciId) " +
+                            "VALUES(@takipId,@takipciId)";
+                            cmd = new SqlCommand(kayit, baglanti);
+                            cmd.Parameters.AddWithValue("@takipId", takipId.Text);
+                            cmd.Parameters.AddWithValue("@takipciId", takipciId.Text);
+                            cmd.ExecuteNonQuery();
+                            cmd.Dispose();
+                        MessageBox.Show("Kullanýcý Eklendi", "KAYIT BAÞARILI");
+                    }
+                        else
+                        {
+                        MessageBox.Show("Premium Kullanýcýsý degil!");
+                    }
+
+                      
+                    baglanti.Close();
+                }
+            }
+            catch (Exception hata)
+            {
+                MessageBox.Show("Bir hata var!" + hata.Message);
+            }
+            kullaniciGetir();
+        }
+
+        private void k_sil_Click(object sender, EventArgs e)
+        {
+
+            foreach (DataGridViewRow drow in dataGridView1.SelectedRows)
+            {
+                baglanti.Open();
+                int id = Convert.ToInt32(drow.Cells[0].Value);
+                kayit = "DELETE FROM takipci WHERE takipId= '" + id + "'";
+                cmd = new SqlCommand(kayit, baglanti);
+                cmd.ExecuteNonQuery();
+                cmd.Dispose();
+                kayit = "DELETE FROM takipci WHERE takipciId= '" + id + "'";
+                cmd = new SqlCommand(kayit, baglanti);
+                cmd.ExecuteNonQuery();
+                cmd.Dispose();
+                kayit = "DELETE FROM calmaListesi WHERE kullaniciId= '" + id + "'";
+                cmd = new SqlCommand(kayit, baglanti);
+                cmd.ExecuteNonQuery();
+                cmd.Dispose();
+                kayit = "DELETE FROM kullanici WHERE Id= '" + id + "'";
+                cmd = new SqlCommand(kayit, baglanti);
+                cmd.ExecuteNonQuery();
+                cmd.Dispose();
+                baglanti.Close();
+            }
+            foreach (DataGridViewRow drow in dataGridView2.SelectedRows)
+            {
+                int id = Convert.ToInt32(drow.Cells[0].Value);
+                baglanti.Open();
+                kayit = "DELETE FROM takipci WHERE takipId= '" + id + "'";
+                cmd = new SqlCommand(kayit, baglanti);
+                cmd.ExecuteNonQuery();
+                cmd.Dispose();
+                baglanti.Close();
+            }
+            kullaniciGetir();
+        }
+
+        private void k_güncelle_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                foreach (DataGridViewRow drow in dataGridView1.SelectedRows)
+                {
+                    int id = Convert.ToInt32(drow.Cells[0].Value);
+                    baglanti.Open();
+                    if (kullaniciAdiText.Text != "")
+                    {
+                        kayit = "UPDATE kullanici SET kullaniciAdi='" + kullaniciAdiText.Text + "' WHERE Id= '" + id + "'";
+                        cmd = new SqlCommand(kayit, baglanti);
+                        cmd.ExecuteNonQuery();
+                        cmd.Dispose();
+                    }
+
+
+                    if (emailText.Text != "")
+                    {
+                        kayit = "UPDATE kullanici SET email='" + emailText.Text + "' WHERE Id= '" + id + "'";
+                        cmd = new SqlCommand(kayit, baglanti);
+                        cmd.ExecuteNonQuery();
+                        cmd.Dispose();
+                    }
+
+                    if (sifreText.Text != "")
+                    {
+                        kayit = "UPDATE kullanici SET sifre='" + sifreText.Text + "' WHERE Id= '" + id + "'";
+                        cmd = new SqlCommand(kayit, baglanti);
+                        cmd.ExecuteNonQuery();
+                        cmd.Dispose();
+                    }
+                    if (abonelikTuruText.Text != "")
+                    {
+                        if (String.Equals(abonelikTuruText.Text, "Normal") == true)
+                        {
+
+                            kayit = "UPDATE kullanici SET abonelikTuru ='" + abonelikTuruText.Text + "', odendiBilgisi=@odendiBilgisi WHERE Id= '" + id + "'";
+                            cmd = new SqlCommand(kayit, baglanti);
+                            cmd.Parameters.AddWithValue("@odendiBilgisi", "odenmedi");
+                            cmd.ExecuteNonQuery();
+                            cmd.Dispose();
+                           
+                        }
+                        else if (String.Equals(abonelikTuruText.Text, "Premium") == true)
+                        {
+                            kayit = "UPDATE kullanici SET abonelikTuru ='" + abonelikTuruText.Text + "', odendiBilgisi=@odendiBilgisi WHERE Id= '" + id + "'";
+                            cmd = new SqlCommand(kayit, baglanti);
+                            cmd.Parameters.AddWithValue("@odendiBilgisi", "odendi");
+                            cmd.ExecuteNonQuery();
+                            cmd.Dispose();
+                            
+                        }
+
+                    }
+                    if (ulkeText.Text != "")
+                    {
+                        kayit = "UPDATE kullanici SET ulke ='" + ulkeText.Text + "' WHERE Id= '" + id + "'";
+                        cmd = new SqlCommand(kayit, baglanti);
+                        cmd.ExecuteNonQuery();
+                        cmd.Dispose();
+                    }
+
+                 
+                }
+                baglanti.Close();
+                MessageBox.Show("GÜNCELLENDÝ", "KAYIT BAÞARILI");
+            }
+            catch (Exception hata)
+            {
+                MessageBox.Show("Bir hata var!" + hata.Message);
+            }
+            try
+            {
+                foreach (DataGridViewRow drow1 in dataGridView2.SelectedRows)
+                {
+                    int id = Convert.ToInt32(drow1.Cells[0].Value);
+                    baglanti.Open();
+                    if (takip.Text != "")
+                    {
+                        kayit = "UPDATE takipci SET takipId='" + takipId.Text + "' WHERE takipId='" + id + "'";
+                        cmd = new SqlCommand(kayit, baglanti);
+                        cmd.ExecuteNonQuery();
+                        cmd.Dispose();
+
+                    }
+                    if (takipciId.Text != "")
+                    {
+                        kayit = "UPDATE takipci SET sarkiId='" + takipciId.Text + "' WHERE sanatciId='" + id + "'";
+                        cmd = new SqlCommand(kayit, baglanti);
+                        cmd.ExecuteNonQuery();
+                        cmd.Dispose();
+
+                    }
+
+                }
+                MessageBox.Show("GÜNCELLENDÝ", "KAYIT BAÞARILI");
+                baglanti.Close();
+            }
+            catch (Exception hata)
+            {
+                MessageBox.Show(takipId.Text + "nolu takip veya" + takipciId.Text + "nolu takipci bulunmamaktadýr! " + hata.Message);
+            }
+            kullaniciGetir();
+        }
+
+        private void label8_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void t_ekle_Click(object sender, EventArgs e)
+        {
+            baglanti.Open();
+            if (turAdi.Text != "")
+            {
+                kayit = "INSERT INTO tur(turAdi) " +
+                "VALUES(@turAdi)";
+                cmd = new SqlCommand(kayit, baglanti);
+                cmd.Parameters.AddWithValue("@turAdi", turAdi.Text);
+                cmd.ExecuteNonQuery();
+                cmd.Dispose();
+
+            }
+            baglanti.Close();
+            turGetir();
+        }
+
+        private void t_sil_Click(object sender, EventArgs e)
+        {
+            baglanti.Open();
+            foreach (DataGridViewRow drow in dataGridView3.SelectedRows)
+            {
+                int id = Convert.ToInt32(drow.Cells[0].Value);
+               
+                kayit = "DELETE FROM tur WHERE Id= '" + id + "'";
+                cmd = new SqlCommand(kayit, baglanti);
+                cmd.ExecuteNonQuery();
+                cmd.Dispose();
+                baglanti.Close();
+            }
+            baglanti.Close();
+            turGetir();
+        }
+
+        private void label12_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void button3_Click(object sender, EventArgs e)
+        {
+            baglanti.Open();
+            try
+            {
+                if (c_kullaniciId.Text != "" && c_sarkiId.Text != "")
+                {
+                    kayit = "INSERT INTO calmaListesi(kullaniciId,sarkiId)" +
+                    "VALUES(@kullaniciId,@sarkiId)";
+                    cmd = new SqlCommand(kayit, baglanti);
+                    cmd.Parameters.AddWithValue("@kullaniciId", c_kullaniciId.Text);
+                    cmd.Parameters.AddWithValue("@sarkiId", c_sarkiId.Text);
+                    cmd.ExecuteNonQuery();
+                    cmd.Dispose();
+                    MessageBox.Show("eklendi", "KAYIT BAÞARILI");
+                }
+
+              
+            }
+            catch(Exception hata)
+            {
+                MessageBox.Show(" hata var " + hata.Message);
+            }
+            baglanti.Close();
+            calmaListesi();
+        }
+
+        private void c_sil_Click(object sender, EventArgs e)
+        {
+            foreach (DataGridViewRow drow in dataGridView4.SelectedRows)
+            {
+                int id = Convert.ToInt32(drow.Cells[0].Value);
+                baglanti.Open();
+                kayit = "DELETE FROM calmaListesi WHERE kullaniciId= '" + id + "'";
+                cmd = new SqlCommand(kayit, baglanti);
+                cmd.ExecuteNonQuery();
+                cmd.Dispose();
+                MessageBox.Show("Silindi", "KAYIT BAÞARILI");
+            }
+            baglanti.Close();
+            calmaListesi();
+        }
+
+        private void t_guncelle_Click(object sender, EventArgs e)
+        {
+            baglanti.Open();
+            try
+            {
+                foreach (DataGridViewRow drow1 in dataGridView3.SelectedRows)
+                {
+                    int id = Convert.ToInt32(drow1.Cells[0].Value);
+                  
+                    if (turAdi.Text != "")
+                    {
+                        kayit = "UPDATE tur SET turAdi='" + turAdi.Text + "' WHERE Id='" + id + "'";
+                        cmd = new SqlCommand(kayit, baglanti);
+                        cmd.ExecuteNonQuery();
+                        cmd.Dispose();
+
+                        MessageBox.Show("Güncellendi", "KAYIT BAÞARILI");
+                    }
+                }
+
+            }
+            catch (Exception hata)
+            {
+                MessageBox.Show(" hata var " + hata.Message);
+            }
+            baglanti.Close();
+            turGetir();
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                foreach (DataGridViewRow drow1 in dataGridView4.SelectedRows)
+                {
+                    int id = Convert.ToInt32(drow1.Cells[0].Value);
+                    baglanti.Open();
+                    if (c_kullaniciId.Text != "")
+                    {
+                        kayit = "UPDATE calmaListesi SET kullaniciId='" + c_kullaniciId.Text + "' WHERE kullaniciId='" + id + "'";
+                        cmd = new SqlCommand(kayit, baglanti);
+                        cmd.ExecuteNonQuery();
+                        cmd.Dispose();
+    
+                    }
+
+                    if (c_sarkiId.Text != "")
+                    {
+                        kayit = "UPDATE calmaListesi SET sarkiId='" + c_sarkiId.Text + "' WHERE kullanýcýId='" + id + "'";
+                        cmd = new SqlCommand(kayit, baglanti);
+                        cmd.ExecuteNonQuery();
+                        cmd.Dispose();
+ 
+                    }
+                }
+                MessageBox.Show("Güncellendi", "KAYIT BAÞARILI");
+            }
+            catch (Exception hata)
+            {
+                MessageBox.Show(" hata var " + hata.Message);
+            }
+            baglanti.Close();
+            calmaListesi();
+        }
+
+        private void kapat_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                this.Close();
+
+          
+            }
+            catch(Exception hata)
+            {
+                MessageBox.Show("Bir hata var!" + hata.Message);
+            }
+
+}
+
+        private void ayarlar_Load(object sender, EventArgs e)
+        {
+
+        }
+
+        private void c_kullaniciId_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label16_Click(object sender, EventArgs e)
+        {
+
+        }
+    }
+}
+
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+using System.Data.SqlClient;
+
+// calmaListesi
+namespace pro3
+{
+    public partial class calmaListesi : Form
+    {
+        SqlConnection baglanti = new SqlConnection("Data Source=NABAT\\SQLEXPRESS;Initial Catalog=muzikDosyam;Integrated Security=True");
+        SqlCommand komut = new SqlCommand();
+        SqlDataAdapter adaptor;
+        SqlCommand cmd;
+        String kayit;
+        int deger;
+        public calmaListesi()
+        {
+            InitializeComponent();
+            sarkiGetir();
+        }
+        void sarkiGetir()
+        {
+            baglanti.Open();
+            DataTable sarki_tablo;
+            adaptor = new SqlDataAdapter("SELECT * FROM sarki s INNER JOIN sarki_sanatci AS ss ON s.Id = ss.sarkiId ", baglanti);
+            sarki_tablo = new DataTable();
+            adaptor.Fill(sarki_tablo);
+            dataGridView2.DataSource = sarki_tablo;
+            deger = Form1.k_id;
+            adaptor = new SqlDataAdapter("SELECT * FROM sarki AS s INNER JOIN calmaListesi AS c ON s.Id=c.sarkiId " +
+              "INNER JOIN sarki_sanatci AS ss ON s.Id = ss.sarkiId  WHERE kullaniciId='" + deger+"'", baglanti);
+            sarki_tablo = new DataTable();
+            adaptor.Fill(sarki_tablo);
+            dataGridView1.DataSource = sarki_tablo;
+            baglanti.Close();
+        }
+        private void sarki_ekle_Click(object sender, EventArgs e)
+        {
+            List<int> s_Id = new List<int>();
+            s_Id.Clear();
+            try
+            {
+                foreach (DataGridViewRow drow in dataGridView2.SelectedRows)
+                {
+                    int id = Convert.ToInt32(drow.Cells[0].Value);
+
+                    baglanti.Open();
+                    kayit = "SELECT sarkiId FROM calmaListesi WHERE kullaniciId='" + deger + "'";
+                    cmd = new SqlCommand(kayit, baglanti);
+                    SqlDataReader oku1 = cmd.ExecuteReader();
+                    
+                    while (oku1.Read())
+                    {
+                        s_Id.Add(int.Parse(oku1["sarkiId"].ToString()));
+                    }
+                    oku1.Close();
+                    
+
+
+                    if(s_Id.Contains(id)==false )
+                    {
+                        kayit = "INSERT INTO calmaListesi(kullaniciId,sarkiId) " +
+                        "VALUES(@kullaniciId,@sarkiId)";
+                        cmd = new SqlCommand(kayit, baglanti);
+                        cmd.Parameters.AddWithValue("@kullaniciId", deger);
+                        cmd.Parameters.AddWithValue("@sarkiId", id);
+                        cmd.ExecuteNonQuery();
+                        cmd.Dispose();
+                        MessageBox.Show("Eklendi", "KAYIT BAÞARILI");
+                        
+                    }
+                    else if(s_Id.Contains(id) == true)
+                    {
+                        MessageBox.Show("" + id + "Þarký Listesinde mevcut !", "KAYIT BAÞARILI");
+                    }
+                        
+                  
+
+
+                }       
+
+                    baglanti.Close();
+                   
+                
+            }
+            catch (Exception hata)
+            {
+                MessageBox.Show("Bir hata var!" + hata.Message);
+            }
+            sarkiGetir();
+           
+        }
+
+        private void button4_Click(object sender, EventArgs e)
+        {
+            foreach (DataGridViewRow drow in dataGridView1.SelectedRows)
+            {
+                int id = Convert.ToInt32(drow.Cells[0].Value);
+                baglanti.Open();
+                kayit = "DELETE FROM calmaListesi WHERE sarkiId= '" + id + "'";
+                cmd = new SqlCommand(kayit, baglanti);
+                cmd.ExecuteNonQuery();
+                cmd.Dispose();
+                baglanti.Close();
+            }
+            sarkiGetir();
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            baglanti.Open();
+            DataTable sarki_tablo;
+            adaptor = new SqlDataAdapter("SELECT * FROM sarki AS s INNER JOIN calmaListesi AS c ON s.Id=c.sarkiId " +
+                "INNER JOIN sarki_sanatci AS ss ON s.Id=ss.sarkiId WHERE turId=1 AND kullaniciId='" + deger + "'", baglanti);
+            sarki_tablo = new DataTable();
+            adaptor.Fill(sarki_tablo);
+            dataGridView1.DataSource = sarki_tablo;
+            baglanti.Close();
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            baglanti.Open();
+            DataTable sarki_tablo;
+            adaptor = new SqlDataAdapter("SELECT * FROM sarki AS s INNER JOIN calmaListesi AS c ON s.Id=c.sarkiId " +
+                "INNER JOIN sarki_sanatci AS ss ON s.Id=ss.sarkiId  WHERE turId=2 AND kullaniciId='" + deger + "'", baglanti);
+            sarki_tablo = new DataTable();
+            adaptor.Fill(sarki_tablo);
+            dataGridView1.DataSource = sarki_tablo;
+            baglanti.Close();
+        }
+
+        private void button3_Click(object sender, EventArgs e)
+        {
+            baglanti.Open();
+            DataTable sarki_tablo;
+            adaptor = new SqlDataAdapter("SELECT * FROM sarki AS s INNER JOIN calmaListesi AS c ON s.Id=c.sarkiId " +
+                "INNER JOIN sarki_sanatci AS ss ON s.Id=ss.sarkiId  WHERE turId=3 AND kullaniciId='" + deger + "'", baglanti);
+            sarki_tablo = new DataTable();
+            adaptor.Fill(sarki_tablo);
+            dataGridView1.DataSource = sarki_tablo;
+            baglanti.Close();
+        }
+
+        private void calmaListesi_Load(object sender, EventArgs e)
+        {
+
+        }
+
+        private void button5_Click(object sender, EventArgs e)
+        {
+            en_iyi_10 c_l = new en_iyi_10();
+            c_l.ShowDialog();
+            this.Close();
+        }
+    }
+}
+
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+using System.Data.SqlClient;
+//en iyi10
+namespace pro3
+{
+
+    public partial class en_iyi_10 : Form
+    {
+        SqlConnection baglanti = new SqlConnection("Data Source=NABAT\\SQLEXPRESS;Initial Catalog=muzikDosyam;Integrated Security=True");
+        SqlCommand komut = new SqlCommand();
+        SqlDataAdapter adaptor;
+        SqlCommand cmd;
+        String kayit;
+        public en_iyi_10()
+        {
+            InitializeComponent();
+            sarkiGetir();
+        }
+        void sarkiGetir()
+        {
+            baglanti.Open();
+            DataTable sarki_tablo;
+            adaptor = new SqlDataAdapter("SELECT * FROM sarki", baglanti);
+            sarki_tablo = new DataTable();
+            adaptor.Fill(sarki_tablo);
+            dataGridView1.DataSource = sarki_tablo;
+  
+            baglanti.Close();
+        }
+        private void button7_Click(object sender, EventArgs e)
+        {
+            kullaniciPaneli  k_p = new kullaniciPaneli();
+            k_p.ShowDialog();
+            this.Close();
+        }
+
+        private void button5_Click(object sender, EventArgs e)
+        {
+            baglanti.Open();
+            DataTable sarki_tablo;
+            adaptor = new SqlDataAdapter("SELECT TOP 10 * FROM sarki ORDER BY  dinlenmeSayisi DESC ", baglanti);
+            sarki_tablo = new DataTable();
+            adaptor.Fill(sarki_tablo);
+            dataGridView1.DataSource = sarki_tablo;
+
+            baglanti.Close();
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            baglanti.Open();
+            DataTable sarki_tablo;
+            adaptor = new SqlDataAdapter("SELECT TOP 10 * FROM sarki WHERE turId=1 ORDER BY  dinlenmeSayisi DESC ", baglanti);
+            sarki_tablo = new DataTable();
+            adaptor.Fill(sarki_tablo);
+            dataGridView1.DataSource = sarki_tablo;
+
+            baglanti.Close();
+        }
+
+        private void button3_Click(object sender, EventArgs e)
+        {
+            baglanti.Open();
+            DataTable sarki_tablo;
+            adaptor = new SqlDataAdapter("SELECT TOP 10 * FROM sarki WHERE turId=2 ORDER BY  dinlenmeSayisi DESC ", baglanti);
+            sarki_tablo = new DataTable();
+            adaptor.Fill(sarki_tablo);
+            dataGridView1.DataSource = sarki_tablo;
+
+            baglanti.Close();
+        }
+
+        private void button4_Click(object sender, EventArgs e)
+        {
+            baglanti.Open();
+            DataTable sarki_tablo;
+            adaptor = new SqlDataAdapter("SELECT TOP 10 * FROM sarki WHERE turId=3 ORDER BY  dinlenmeSayisi DESC ", baglanti);
+            sarki_tablo = new DataTable();
+            adaptor.Fill(sarki_tablo);
+            dataGridView1.DataSource = sarki_tablo;
+
+            baglanti.Close();
+        }
+
+        private void button6_Click(object sender, EventArgs e)
+        {
+            baglanti.Open();
+            DataTable sarki_tablo;
+            adaptor = new SqlDataAdapter("SELECT TOP 10 sarkiAdi,ulke ,dinlenmeSayisi,turId FROM sarki AS s INNER JOIN calmaListesi AS c ON s.Id=c.sarkiId INNER JOIN kullanici AS k ON c.kullaniciId=k.Id  ORDER BY  dinlenmeSayisi DESC ", baglanti);
+            sarki_tablo = new DataTable();
+            adaptor.Fill(sarki_tablo);
+            dataGridView1.DataSource = sarki_tablo;
+
+            baglanti.Close();
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            baglanti.Open();
+            DataTable sarki_tablo;
+            adaptor = new SqlDataAdapter("SELECT * FROM sarki WHERE sarkiAdi like '%" +ara.Text+"'", baglanti);
+            sarki_tablo = new DataTable();
+            adaptor.Fill(sarki_tablo);
+            dataGridView2.DataSource = sarki_tablo;
+
+            baglanti.Close();
+        }
+
+        private void button8_Click(object sender, EventArgs e)
+        {
+            int sayi;
+            baglanti.Open();
+            try
+            {
+                foreach (DataGridViewRow drow in dataGridView2.SelectedRows)
+                {
+                    int id = Convert.ToInt32(drow.Cells[0].Value);
+                    int dinlenme = Convert.ToInt32(drow.Cells[6].Value);
+                    dinlenme += 1;
+                    
+                    kayit = "UPDATE sarki SET dinlenmeSayisi='" + dinlenme + "' WHERE Id= '" + id + "'";
+                    cmd = new SqlCommand(kayit, baglanti);
+                    cmd.ExecuteNonQuery();
+                    cmd.Dispose();
+                    DataTable sarki_tablo;
+                    adaptor = new SqlDataAdapter("SELECT * FROM sarki WHERE Id= '" + id + "'", baglanti);
+                    sarki_tablo = new DataTable();
+                    adaptor.Fill(sarki_tablo);
+                    dataGridView2.DataSource = sarki_tablo;
+
+                }
+
+                baglanti.Close();
+
+
+            }
+            catch (Exception hata)
+            {
+                MessageBox.Show("Bir hata var!" + hata.Message);
+            }
+        }
+
+        private void en_iyi_10_Load(object sender, EventArgs e)
+        {
+
+        }
+    }
+}
+
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+using System.Data.SqlClient;
+
+// form1
+namespace pro3
+{
+      
+    public partial class Form1 : Form
+    {
+        SqlConnection baglanti = new SqlConnection("Data Source=NABAT\\SQLEXPRESS;Initial Catalog=muzikDosyam;Integrated Security=True");
+        SqlCommand komut = new SqlCommand();
+        SqlDataAdapter adaptor;
+        SqlCommand cmd;
+        String kayit;
+        int a_id;
+        String a_a;
+        String aa_sifre;
+        String k_a, sifre;
+       public static int k_id;
+        List<int> s_Id = new List<int>();
+        public Form1()
+        {
+            InitializeComponent();
+            k_sifre.PasswordChar = '•';
+            a_sifre.PasswordChar = '•';
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            uyeOl uye = new uyeOl();
+            uye.ShowDialog();
+            
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+
+            baglanti.Open();
+            kayit = "SELECT Id ,adminAdi , sifre FROM admin WHERE adminAdi='" + adminAdi.Text + "' AND sifre='" + a_sifre.Text + "'";
+            cmd = new SqlCommand(kayit, baglanti);
+            SqlDataReader oku1 = cmd.ExecuteReader();
+
+            while (oku1.Read())
+            {
+
+                a_a = oku1["adminAdi"].ToString();
+                aa_sifre = oku1["sifre"].ToString();
+                a_id = int.Parse(oku1["Id"].ToString());
+            }
+            oku1.Close();
+            if (a_a == adminAdi.Text && aa_sifre == a_sifre.Text)
+            {
+                admin admn = new admin();
+                admn.ShowDialog();
+                MessageBox.Show("" + a_id , "KAYIT BAÞARILI");
+            }
+            else
+            {
+                MessageBox.Show("Admin adý veya Þifre hatalý!", "KAYIT BAÞARILI");
+            }
+            baglanti.Close();
+
+            
+        }
+
+        private void Ayarlar_Click(object sender, EventArgs e)
+        {
+            adminAyar c_l = new adminAyar();
+            c_l.ShowDialog();
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+
+        }
+
+        private void button3_Click(object sender, EventArgs e)
+        {
+
+            baglanti.Open();
+            kayit = "SELECT Id ,kullaniciAdi , sifre FROM kullanici WHERE kullaniciAdi='"+Kullanici_Adi.Text+"' AND sifre='"+k_sifre.Text+"'";
+            cmd = new SqlCommand(kayit, baglanti);
+            SqlDataReader oku1 = cmd.ExecuteReader();
+
+            while (oku1.Read())
+            {
+
+                k_a =oku1["kullaniciAdi"].ToString();
+                sifre= oku1["sifre"].ToString();
+                k_id = int.Parse(oku1["Id"].ToString());
+            }
+            oku1.Close();
+            if (k_a== Kullanici_Adi.Text && sifre== k_sifre.Text)
+            {
+
+                calmaListesi c_l = new calmaListesi();
+                c_l.ShowDialog();
+                MessageBox.Show(""+k_id, "KAYIT BAÞARILI");
+            }
+            else 
+            {
+                MessageBox.Show("Kullanýcý adý veya Þifre hatalý!", "KAYIT BAÞARILI");
+            }
+            baglanti.Close();
+
+        }
+    }
+}
+
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+using System.Data.SqlClient;
+
+//kullaniciPAneli
+namespace pro3
+{
+    public partial class kullaniciPaneli : Form
+    {
+        SqlConnection baglanti = new SqlConnection("Data Source=NABAT\\SQLEXPRESS;Initial Catalog=muzikDosyam;Integrated Security=True");
+        SqlCommand komut = new SqlCommand();
+        SqlDataAdapter adaptor;
+        SqlCommand cmd;
+        String kayit;
+        int deger = Form1.k_id;
+        int t_id;
+        public kullaniciPaneli()
+        {
+            InitializeComponent();
+            premium_kullanicilar();
+            takipciler();
+        }
+
+        private void kullaniciPaneli_Load(object sender, EventArgs e)
+        {
+
+        }
+        void premium_kullanicilar()
+        {
+            baglanti.Open();
+            DataTable sarki_tablo;
+            adaptor = new SqlDataAdapter("SELECT Id,kullaniciAdi ,abonelikTuru,ulke FROM kullanici WHERE abonelikTuru='Premium'", baglanti);
+            sarki_tablo = new DataTable();
+            adaptor.Fill(sarki_tablo);
+            dataGridView1.DataSource = sarki_tablo;
+
+            baglanti.Close();
+        }
+
+        void takipciler()
+        {
+            baglanti.Open();
+            DataTable sarki_tablo;
+            adaptor = new SqlDataAdapter("SELECT Id,kullaniciAdi ,abonelikTuru,ulke , takipciId FROM" +
+                " kullanici AS k INNER JOIN takipci AS t ON k.Id=t.takipId WHERE t.takipId='"+deger+"'", baglanti);
+            sarki_tablo = new DataTable();
+            adaptor.Fill(sarki_tablo);
+            dataGridView3.DataSource = sarki_tablo;
+
+            baglanti.Close();
+        }
+        void popGetir()
+        {
+            baglanti.Open();
+            DataTable sarki_tablo;
+            adaptor = new SqlDataAdapter("SELECT * FROM sarki INNER JOIN calmaListesi ON Id=sarkiId WHERE turId=1 AND kullaniciId='" + deger + "'", baglanti);
+            sarki_tablo = new DataTable();
+            adaptor.Fill(sarki_tablo);
+            dataGridView2.DataSource = sarki_tablo;
+            adaptor = new SqlDataAdapter("SELECT * FROM sarki INNER JOIN calmaListesi ON Id=sarkiId WHERE turId=1 AND kullaniciId='" + t_id + "'", baglanti);
+            sarki_tablo = new DataTable();
+            adaptor.Fill(sarki_tablo);
+            dataGridView4.DataSource = sarki_tablo;
+            baglanti.Close();
+        }
+
+        void jazzGetir()
+        {
+            baglanti.Open();
+            DataTable sarki_tablo;
+            adaptor = new SqlDataAdapter("SELECT * FROM sarki INNER JOIN calmaListesi ON Id=sarkiId WHERE turId=2 AND kullaniciId='" + deger + "'", baglanti);
+            sarki_tablo = new DataTable();
+            adaptor.Fill(sarki_tablo);
+            dataGridView2.DataSource = sarki_tablo;
+            adaptor = new SqlDataAdapter("SELECT * FROM sarki INNER JOIN calmaListesi ON Id=sarkiId WHERE turId=2 AND kullaniciId='" + t_id + "'", baglanti);
+            sarki_tablo = new DataTable();
+            adaptor.Fill(sarki_tablo);
+            dataGridView4.DataSource = sarki_tablo;
+            baglanti.Close();
+        }
+       void klasikGetir()
+        {
+            baglanti.Open();
+            DataTable sarki_tablo;
+            adaptor = new SqlDataAdapter("SELECT * FROM sarki INNER JOIN calmaListesi ON Id=sarkiId WHERE turId=3 AND kullaniciId='" + deger + "'", baglanti);
+            sarki_tablo = new DataTable();
+            adaptor.Fill(sarki_tablo);
+            dataGridView2.DataSource = sarki_tablo;
+            adaptor = new SqlDataAdapter("SELECT * FROM sarki INNER JOIN calmaListesi ON Id=sarkiId WHERE turId=3 AND kullaniciId='" + t_id + "'", baglanti);
+            sarki_tablo = new DataTable();
+            adaptor.Fill(sarki_tablo);
+            dataGridView4.DataSource = sarki_tablo;
+            baglanti.Close();
+        }
+        private void button4_Click(object sender, EventArgs e)
+        {
+        
+        }
+
+        private void button3_Click(object sender, EventArgs e)
+        {
+
+            this.Close();
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            List<int> s_Id = new List<int>();
+            s_Id.Clear();
+            try
+            {
+                foreach (DataGridViewRow drow in dataGridView1.SelectedRows)
+                {
+                    int p_id = Convert.ToInt32(drow.Cells[0].Value);
+
+                    baglanti.Open();
+                    kayit = "SELECT takipciId FROM takipci WHERE takipId='"+ deger + "'";
+                    cmd = new SqlCommand(kayit, baglanti);
+                    SqlDataReader oku1 = cmd.ExecuteReader();
+
+                    while (oku1.Read())
+                    {
+                        s_Id.Add(int.Parse(oku1["takipciId"].ToString()));
+                    }
+                    oku1.Close();
+                  
+
+
+                    if (s_Id.Contains(p_id) == false)
+                    {
+                        kayit = "INSERT INTO takipci(takipId,takipciId) " +
+                        "VALUES(@takipId,@takipciId)";
+                        cmd = new SqlCommand(kayit, baglanti);
+                        cmd.Parameters.AddWithValue("@takipId", deger);
+                        cmd.Parameters.AddWithValue("@takipciId", p_id);
+                        cmd.ExecuteNonQuery();
+                        cmd.Dispose();
+                        MessageBox.Show("Eklendi", "KAYIT BAÞARILI");
+
+                    }
+                    else if (s_Id.Contains(p_id) == true)
+                    {
+                        MessageBox.Show("" + p_id + "Þarký Listesinde mevcut !", "KAYIT BAÞARILI");
+                    }
+
+                }
+                baglanti.Close();
+                takipciler();
+            }
+            catch (Exception hata)
+            {
+                MessageBox.Show("Bir hata var!" + hata.Message);
+            }
+       
+        }
+
+        private void POP_Click(object sender, EventArgs e)
+        {
+            popGetir();
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                foreach (DataGridViewRow drow in dataGridView3.SelectedRows)
+                {
+                 t_id = Convert.ToInt32(drow.Cells[4].Value);
+                    baglanti.Open();
+            DataTable sarki_tablo;
+            adaptor = new SqlDataAdapter("SELECT Id,sarkiAdi,turId,sure,albumId,kullaniciId FROM sarki INNER JOIN calmaListesi ON Id=sarkiId WHERE kullaniciId='" + t_id+ "'", baglanti);
+            sarki_tablo = new DataTable();
+            adaptor.Fill(sarki_tablo);
+            dataGridView4.DataSource = sarki_tablo;
+            baglanti.Close();
+                }
+                baglanti.Close();
+                takipciler();
+            }
+            catch (Exception hata)
+            {
+                MessageBox.Show("Bir hata var!" + hata.Message);
+            }
+        }
+
+        private void button4_Click_1(object sender, EventArgs e)
+        {
+            jazzGetir();
+        }
+
+        private void button5_Click(object sender, EventArgs e)
+        {
+            klasikGetir();
+        }
+
+        private void button6_Click(object sender, EventArgs e)
+        {
+            List<int> s_Id = new List<int>();
+            s_Id.Clear();
+            try
+            {
+                foreach (DataGridViewRow drow in dataGridView4.SelectedRows)
+                {
+                    int id = Convert.ToInt32(drow.Cells[0].Value);
+
+                    baglanti.Open();
+                    kayit = "SELECT sarkiId FROM calmaListesi WHERE kullaniciId='" + deger + "'";
+                    cmd = new SqlCommand(kayit, baglanti);
+                    SqlDataReader oku1 = cmd.ExecuteReader();
+
+                    while (oku1.Read())
+                    {
+                        s_Id.Add(int.Parse(oku1["sarkiId"].ToString()));
+                    }
+                    oku1.Close();
+                    int sayi = 0;
+
+
+                    if (s_Id.Contains(id) == false)
+                    {
+                        kayit = "INSERT INTO calmaListesi(kullaniciId,sarkiId) " +
+                        "VALUES(@kullaniciId,@sarkiId)";
+                        cmd = new SqlCommand(kayit, baglanti);
+                        cmd.Parameters.AddWithValue("@kullaniciId", deger);
+                        cmd.Parameters.AddWithValue("@sarkiId", id);
+                        cmd.ExecuteNonQuery();
+                        cmd.Dispose();
+                        MessageBox.Show("Eklendi", "KAYIT BAÞARILI");
+
+                    }
+                    else if (s_Id.Contains(id) == true)
+                    {
+                        MessageBox.Show("" + id + "Þarký Listesinde mevcut !", "KAYIT BAÞARILI");
+                    }
+
+
+
+
+                }
+                baglanti.Close();
+                popGetir();
+               
+
+
+            }
+            catch (Exception hata)
+            {
+                MessageBox.Show("Bir hata var!" + hata.Message);
+            }
+         
+
+        }
+
+        private void button8_Click(object sender, EventArgs e)
+        {
+            List<int> s_Id = new List<int>();
+            s_Id.Clear();
+            try
+            {
+                foreach (DataGridViewRow drow in dataGridView4.SelectedRows)
+                {
+                    int id = Convert.ToInt32(drow.Cells[0].Value);
+
+                    baglanti.Open();
+                    kayit = "SELECT sarkiId FROM calmaListesi WHERE kullaniciId='" + deger + "'";
+                    cmd = new SqlCommand(kayit, baglanti);
+                    SqlDataReader oku1 = cmd.ExecuteReader();
+
+                    while (oku1.Read())
+                    {
+                        s_Id.Add(int.Parse(oku1["sarkiId"].ToString()));
+                    }
+                    oku1.Close();
+                    int sayi = 0;
+
+
+                    if (s_Id.Contains(id) == false)
+                    {
+                        kayit = "INSERT INTO calmaListesi(kullaniciId,sarkiId) " +
+                        "VALUES(@kullaniciId,@sarkiId)";
+                        cmd = new SqlCommand(kayit, baglanti);
+                        cmd.Parameters.AddWithValue("@kullaniciId", deger);
+                        cmd.Parameters.AddWithValue("@sarkiId", id);
+                        cmd.ExecuteNonQuery();
+                        cmd.Dispose();
+                        MessageBox.Show("Eklendi", "KAYIT BAÞARILI");
+
+                    }
+                    else if (s_Id.Contains(id) == true)
+                    {
+                        MessageBox.Show("" + id + "Þarký Listesinde mevcut !", "KAYIT BAÞARILI");
+                    }
+
+
+
+
+                }
+                baglanti.Close();
+                jazzGetir();
+
+            }
+            catch (Exception hata)
+            {
+                MessageBox.Show("Bir hata var!" + hata.Message);
+            }
+        }
+
+        private void button11_Click(object sender, EventArgs e)
+        {
+            List<int> s_Id = new List<int>();
+            s_Id.Clear();
+            try
+            {
+                foreach (DataGridViewRow drow in dataGridView4.SelectedRows)
+                {
+                    int id = Convert.ToInt32(drow.Cells[0].Value);
+
+                    baglanti.Open();
+                    kayit = "SELECT sarkiId FROM calmaListesi WHERE kullaniciId='" + deger + "'";
+                    cmd = new SqlCommand(kayit, baglanti);
+                    SqlDataReader oku1 = cmd.ExecuteReader();
+
+                    while (oku1.Read())
+                    {
+                        s_Id.Add(int.Parse(oku1["sarkiId"].ToString()));
+                    }
+                    oku1.Close();
+                    int sayi = 0;
+
+
+                    if (s_Id.Contains(id) == false)
+                    {
+                        kayit = "INSERT INTO calmaListesi(kullaniciId,sarkiId) " +
+                        "VALUES(@kullaniciId,@sarkiId)";
+                        cmd = new SqlCommand(kayit, baglanti);
+                        cmd.Parameters.AddWithValue("@kullaniciId", deger);
+                        cmd.Parameters.AddWithValue("@sarkiId", id);
+                        cmd.ExecuteNonQuery();
+                        cmd.Dispose();
+                        MessageBox.Show("Eklendi", "KAYIT BAÞARILI");
+
+                    }
+                    else if (s_Id.Contains(id) == true)
+                    {
+                        MessageBox.Show("" + id + "Þarký Listesinde mevcut !", "KAYIT BAÞARILI");
+                    }
+
+
+
+
+                }
+
+                baglanti.Close();
+                klasikGetir();
+
+            }
+            catch (Exception hata)
+            {
+                MessageBox.Show("Bir hata var!" + hata.Message);
+            }
+        }
+
+        private void button7_Click(object sender, EventArgs e)
+        {
+            baglanti.Open();
+            List<int> s_Id = new List<int>();
+            kayit = "SELECT sarkiId FROM calmaListesi WHERE kullaniciId='" + deger + "'";
+            cmd = new SqlCommand(kayit, baglanti);
+            SqlDataReader oku1 = cmd.ExecuteReader();
+
+            while (oku1.Read())
+            {
+                s_Id.Add(int.Parse(oku1["sarkiId"].ToString()));
+            }
+            oku1.Close();
+            
+            for (int i=0; i< dataGridView4.SelectedRows.Count; i++)
+            {
+               // MessageBox.Show(+i+":" + dataGridView4.SelectedRows.Count + " !", "KAYIT BAÞARILI");
+                String  sayi = dataGridView4.SelectedRows[i].Cells["Id"].Value.ToString();
+                if (s_Id.Contains(Convert.ToInt32(sayi)) == false)
+                {
+                    kayit = "INSERT INTO calmaListesi(kullaniciId,sarkiId) " +
+                   "VALUES(@kullaniciId,@sarkiId)";
+                cmd = new SqlCommand(kayit, baglanti);
+                cmd.Parameters.AddWithValue("@kullaniciId", deger);
+                cmd.Parameters.AddWithValue("@sarkiId", dataGridView4.SelectedRows[i].Cells["Id"].Value.ToString());
+                cmd.ExecuteNonQuery();
+                cmd.Dispose();
+                MessageBox.Show("Eklendi", "KAYIT BAÞARILI");
+                }
+                else if (s_Id.Contains(Convert.ToInt32(sayi)) == true)
+                {
+                    MessageBox.Show("" + Convert.ToInt32(sayi) + "Þarký Listesinde mevcut !", "KAYIT BAÞARILI");
+                }
+            }
+            baglanti.Close();
+            popGetir();
+        }
+
+        private void button9_Click(object sender, EventArgs e)
+        {
+
+            baglanti.Open();
+            List<int> s_Id = new List<int>();
+            kayit = "SELECT sarkiId FROM calmaListesi WHERE kullaniciId='" + deger + "'";
+            cmd = new SqlCommand(kayit, baglanti);
+            SqlDataReader oku1 = cmd.ExecuteReader();
+
+            while (oku1.Read())
+            {
+                s_Id.Add(int.Parse(oku1["sarkiId"].ToString()));
+            }
+            oku1.Close();
+
+            for (int i = 0; i < dataGridView4.SelectedRows.Count; i++)
+            {
+                // MessageBox.Show(+i+":" + dataGridView4.SelectedRows.Count + " !", "KAYIT BAÞARILI");
+                String sayi = dataGridView4.SelectedRows[i].Cells["Id"].Value.ToString();
+                if (s_Id.Contains(Convert.ToInt32(sayi)) == false)
+                {
+                    kayit = "INSERT INTO calmaListesi(kullaniciId,sarkiId) " +
+                   "VALUES(@kullaniciId,@sarkiId)";
+                    cmd = new SqlCommand(kayit, baglanti);
+                    cmd.Parameters.AddWithValue("@kullaniciId", deger);
+                    cmd.Parameters.AddWithValue("@sarkiId", dataGridView4.SelectedRows[i].Cells["Id"].Value.ToString());
+                    cmd.ExecuteNonQuery();
+                    cmd.Dispose();
+                    MessageBox.Show("Eklendi", "KAYIT BAÞARILI");
+                }
+                else if (s_Id.Contains(Convert.ToInt32(sayi)) == true)
+                {
+                    MessageBox.Show("" + Convert.ToInt32(sayi) + "Þarký Listesinde mevcut !", "KAYIT BAÞARILI");
+                }
+            }
+            baglanti.Close();
+            jazzGetir();
+        }
+
+        private void button10_Click(object sender, EventArgs e)
+        {
+
+            baglanti.Open();
+            List<int> s_Id = new List<int>();
+            kayit = "SELECT sarkiId FROM calmaListesi WHERE kullaniciId='" + deger + "'";
+            cmd = new SqlCommand(kayit, baglanti);
+            SqlDataReader oku1 = cmd.ExecuteReader();
+
+            while (oku1.Read())
+            {
+                s_Id.Add(int.Parse(oku1["sarkiId"].ToString()));
+            }
+            oku1.Close();
+
+            for (int i = 0; i < dataGridView4.SelectedRows.Count; i++)
+            {
+                // MessageBox.Show(+i+":" + dataGridView4.SelectedRows.Count + " !", "KAYIT BAÞARILI");
+                String sayi = dataGridView4.SelectedRows[i].Cells["Id"].Value.ToString();
+                if (s_Id.Contains(Convert.ToInt32(sayi)) == false)
+                {
+                    kayit = "INSERT INTO calmaListesi(kullaniciId,sarkiId) " +
+                   "VALUES(@kullaniciId,@sarkiId)";
+                    cmd = new SqlCommand(kayit, baglanti);
+                    cmd.Parameters.AddWithValue("@kullaniciId", deger);
+                    cmd.Parameters.AddWithValue("@sarkiId", dataGridView4.SelectedRows[i].Cells["Id"].Value.ToString());
+                    cmd.ExecuteNonQuery();
+                    cmd.Dispose();
+                    MessageBox.Show("Eklendi", "KAYIT BAÞARILI");
+                }
+                else if (s_Id.Contains(Convert.ToInt32(sayi)) == true)
+                {
+                    MessageBox.Show("" + Convert.ToInt32(sayi) + "Þarký Listesinde mevcut !", "KAYIT BAÞARILI");
+                }
+            }
+            baglanti.Close();
+            klasikGetir();
+        }
+    }
+}
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+//program
+namespace pro3
+{
+    static class Program
+    {
+        /// <summary>
+        /// The main entry point for the application.
+        /// </summary>
+        [STAThread]
+        static void Main()
+        {
+            Application.EnableVisualStyles();
+            Application.SetCompatibleTextRenderingDefault(false);
+            Application.Run(new Form1());
+        }
+    }
+}
+
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+using System.Data.SqlClient;
+
+//uyeOl
+namespace pro3
+{
+    public partial class uyeOl : Form
+    {
+        SqlConnection baglanti = new SqlConnection("Data Source=NABAT\\SQLEXPRESS;Initial Catalog=muzikDosyam;Integrated Security=True");
+        SqlCommand komut = new SqlCommand();
+        SqlDataAdapter adaptor;
+        SqlCommand cmd;
+        String kayit;
+       public static int Id;
+        public uyeOl()
+        {
+            InitializeComponent();
+            sifreText.PasswordChar = '•';
+            sifreText.MaxLength = 10;
+           
+        }
+
+
+        private void textBox2_TextChanged(object sender, EventArgs e)
+        {
+            
+        }
+
+        private void textBox1_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label3_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                baglanti.Open();
+                List<String> s_Id = new List<String>();
+                s_Id.Clear();
+                
+                       
+                        kayit = "SELECT kullaniciAdi FROM kullanici ";
+                        cmd = new SqlCommand(kayit, baglanti);
+                        SqlDataReader oku3 = cmd.ExecuteReader();
+
+                        while (oku3.Read())
+                        {
+                            s_Id.Add(oku3["kullaniciAdi"].ToString());
+                        }
+                        oku3.Close();
+               
+                if (s_Id.Contains(kullaniciAdiText.Text) == false)
+                {
+                  
+                       
+
+                        String kayit = "INSERT INTO kullanici(kullaniciAdi,email,sifre,abonelikTuru,ulke,odendiBilgisi) " +
+                            "VALUES(@kullaniciAdi,@email,@sifre,@abonelikTuru,@ulke,@odendiBilgisi)";
+                        SqlCommand cmd = new SqlCommand(kayit, baglanti);
+                        cmd.Parameters.AddWithValue("@kullaniciAdi", kullaniciAdiText.Text);
+                        cmd.Parameters.AddWithValue("@email", emailText.Text);
+                        cmd.Parameters.AddWithValue("@sifre", sifreText.Text);
+                        cmd.Parameters.AddWithValue("@abonelikTuru", abonelikTuruText.Text);
+                        cmd.Parameters.AddWithValue("@ulke", ulkeText.Text);
+
+                        if (String.Equals(abonelikTuruText.Text, "Normal") == true)
+                        {
+
+
+                            cmd.Parameters.AddWithValue("@odendiBilgisi", "odenmedi");
+                        }
+                        else if (String.Equals(abonelikTuruText.Text, "Premium") == true)
+                        {
+                            cmd.Parameters.AddWithValue("@odendiBilgisi", "odendi");
+                        }
+
+                        cmd.ExecuteNonQuery();
+                        cmd.Dispose();
+                        kayit = "SELECT Id FROM Kullanici WHERE kullaniciAdi='" + kullaniciAdiText.Text + "'";
+                        cmd = new SqlCommand(kayit, baglanti);
+                        SqlDataReader oku = cmd.ExecuteReader();
+
+                        while (oku.Read())
+                        {
+
+                            Id = int.Parse(oku["Id"].ToString());
+                        }
+                        oku.Close();
+
+                        MessageBox.Show("" + Id + "," + kullaniciAdiText.Text, "KAYIT BAÞARILI");
+
+               
+
+                    this.Close();
+
+                }
+                else if (s_Id.Contains(kullaniciAdiText.Text) == true)
+                {
+                    MessageBox.Show("Kullanýcý adý mevcut", "KAYIT BAÞARILI");
+                    
+                }
+
+                baglanti.Close();
+
+            }
+            catch(Exception hata)
+            {
+                MessageBox.Show(""+ hata.Message);
+            }
+
+
+
+
+        }
+
+        private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void uyeOl_Load(object sender, EventArgs e)
+        {
+
+        }
+    }
+}
